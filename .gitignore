@@ -10,6 +10,11 @@
 !.yarn/releases
 !.yarn/versions
 
+# backend dependencies
+/backend/node_modules/
+/backend/package-lock.json
+/backend/.env
+
 # testing
 /coverage
 
@@ -19,6 +24,10 @@
 
 # production
 /build
+
+# backend build output
+/backend/dist/
+/backend/build/
 
 # misc
 .DS_Store
@@ -39,3 +48,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# logs
+*.log
+logs/
+tmp/
