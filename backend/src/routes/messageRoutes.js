@@ -1,9 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { sendMessage, getChatHistory, markAsRead } = require('../controllers/messageController');
+const { sendMessage, getChatHistory, markAsRead, getAllChats } = require('../controllers/messageController');
 
 // Send a message
 router.post('/send', sendMessage);
+
+// get all chats
+router.get("/all/:userId", getAllChats); // Get all chats for a user
+
 
 // Get chat history between two users
 router.get('/history/:userId1/:userId2', getChatHistory);

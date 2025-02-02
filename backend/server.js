@@ -10,11 +10,19 @@ const messageRoutes = require('./src/routes/messageRoutes');
 const notificationRoutes = require('./src/routes/notificationRoutes');
 const errorHandler = require('./src/middleware/errorMiddleware');
 
+
 dotenv.config();
 connectDB();
 
 const app = express();
-app.use(cors());
+app.use(
+    cors({
+      origin: "http://localhost:3000", // Allow requests from frontend
+      credentials: true, // Allow cookies, authorization headers, etc.
+      methods: ["GET", "POST", "PUT", "DELETE"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+    })
+  );
 app.use(express.json());
 
 // Routes

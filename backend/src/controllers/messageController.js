@@ -24,6 +24,61 @@ exports.sendMessage = async (req, res, next) => {
   }
 };
 
+exports.getAllChats = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+
+    // Find distinct chat partners where the user is either sender or recipient
+    const chats = await Message.aggregate([
+      {
+        $match: {
+          $or: [{ sender: userId }, { recipient: userId }],
+        },
+      },
+      {
+        $group: {
+          _id: {
+            $cond: {
+              if: { $eq: ["$sender", userId] },
+              then: "$recipient",
+              else: "$sender",
+            },
+          },
+          lastMessage: { $last: "$$ROOT" }, // Get last message in each chat
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "chatPartner",
+        },
+      },
+      {
+        $unwind: "$chatPartner",
+      },
+      {
+        $project: {
+          _id: 0,
+          chatPartner: { _id: 1, username: 1, avatar: 1 },
+          lastMessage: {
+            content: 1,
+            media: 1,
+            createdAt: 1,
+            isRead: 1,
+          },
+        },
+      },
+    ]);
+
+    res.json({ chats });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 // Get chat history between two users
 exports.getChatHistory = async (req, res, next) => {
   try {

@@ -1,16 +1,39 @@
-// /app/auth/login/page.tsx
 "use client";
 
 import { Button, TextField, Typography, Box } from "@mui/material";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic
+    setError(""); // Clear previous errors
+
+    try {
+      const res = await fetch("http://localhost:5001/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+        credentials: "include", // If using cookies for authentication
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || "Login failed");
+
+      // Store token in localStorage or cookies
+      localStorage.setItem("token", data.token);
+
+      // Redirect to the dashboard or home page
+      router.push("/home");
+    } catch (err: any) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -27,6 +50,7 @@ export default function Login() {
       }}
     >
       <Typography variant="h5">Login</Typography>
+      {error && <Typography color="error">{error}</Typography>}
       <TextField
         label="Email"
         value={email}
