@@ -5,7 +5,9 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./src/config/db');
 const authRoutes = require('./src/routes/authRoutes');
+const userRoutes = require('./src/routes/userRoutes')
 const socketServer = require('./socket');
+const chatRoutes = require('./src/routes/chatRoute')
 const messageRoutes = require('./src/routes/messageRoutes');
 const notificationRoutes = require('./src/routes/notificationRoutes');
 const errorHandler = require('./src/middleware/errorMiddleware');
@@ -26,8 +28,10 @@ app.use(
 app.use(express.json());
 
 // Routes
+app.use('/api/users', userRoutes); 
 app.use('/api/auth', authRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/chats', chatRoutes);
 app.use('/api/notifications', notificationRoutes);
 
 // Error handling middleware (should be the last middleware)

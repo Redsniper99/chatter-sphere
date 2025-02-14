@@ -1,18 +1,26 @@
 const express = require('express');
 const router = express.Router();
-const { sendMessage, getChatHistory, markAsRead, getAllChats } = require('../controllers/messageController');
+const {
+  sendMessage,
+  getChatMessages,
+  markAsRead,
+  deleteMessage,
+  updateMessage
+} = require('../controllers/messageController');
 
 // Send a message
 router.post('/send', sendMessage);
 
-// get all chats
-router.get("/all/:userId", getAllChats); // Get all chats for a user
-
-
-// Get chat history between two users
-router.get('/history/:userId1/:userId2', getChatHistory);
+// Get all messages in a chat
+router.get('/:chatId', getChatMessages);
 
 // Mark messages as read
-router.post('/mark-as-read', markAsRead);
+router.patch('/mark-as-read', markAsRead);
+
+// Delete a message
+router.delete('/:messageId', deleteMessage);
+
+// Edit a message
+router.patch('/:messageId', updateMessage);
 
 module.exports = router;

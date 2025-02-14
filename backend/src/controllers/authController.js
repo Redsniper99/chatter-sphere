@@ -8,6 +8,16 @@ const generateToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '1d' });
 };
 
+
+
+exports.getProfile = (req, res) => {
+  if (!req.user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+  
+  res.json(req.user);  // Send the user data as response
+};
+
 // Register user
 exports.register = async (req, res, next) => {
   try {

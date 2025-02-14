@@ -10,12 +10,7 @@ const userSchema = new mongoose.Schema(
     avatar: { type: String, default: '/default-avatar.png' },
     status: { type: String, default: 'Hey there!' },
     googleId: { type: String }, // For Google login
-    notifications: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Notification',
-      },
-    ],
+    notifications: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Notification' }],
     lastSeen: { type: Date, default: Date.now },
   },
   { timestamps: true }

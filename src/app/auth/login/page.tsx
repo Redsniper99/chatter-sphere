@@ -2,35 +2,20 @@
 
 import { Button, TextField, Typography, Box } from "@mui/material";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const router = useRouter();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(""); // Clear previous errors
+    setError("");
 
     try {
-      const res = await fetch("http://localhost:5001/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-        credentials: "include", // If using cookies for authentication
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.message || "Login failed");
-
-      // Store token in localStorage or cookies
-      localStorage.setItem("token", data.token);
-
-      // Redirect to the dashboard or home page
-      router.push("/home");
+      await login(email, password);
     } catch (err: any) {
       setError(err.message);
     }

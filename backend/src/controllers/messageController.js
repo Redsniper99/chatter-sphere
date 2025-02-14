@@ -1,115 +1,89 @@
 const Message = require('../models/messageModel');
+const Chat = require('../models/chatModel');
 const User = require('../models/userModel');
 
 // Send a new message
 exports.sendMessage = async (req, res, next) => {
   try {
-    const { senderId, recipientId, content, media } = req.body;
+    const { senderId, chatId, content, media } = req.body;
 
-    // Validate users
     const sender = await User.findById(senderId);
-    const recipient = await User.findById(recipientId);
-    if (!sender || !recipient) {
-      res.status(404);
-      throw new Error('Sender or recipient not found');
-    }
+    if (!sender) return res.status(404).json({ error: 'Sender not found' });
 
-    // Create a new message
-    const message = new Message({ sender: senderId, recipient: recipientId, content, media });
+    const chat = await Chat.findById(chatId);
+    if (!chat) return res.status(404).json({ error: 'Chat not found' });
+
+    const message = new Message({ chatId, sender: senderId, content, media });
     await message.save();
 
-    res.status(201).json({ message: 'Message sent successfully', message });
-  } catch (error) {
-    next(error); // Pass error to middleware
-  }
-};
+    // Update last message in chat
+    chat.lastMessage = message._id;
+    await chat.save();
 
-exports.getAllChats = async (req, res, next) => {
-  try {
-    const { userId } = req.params;
-
-    // Find distinct chat partners where the user is either sender or recipient
-    const chats = await Message.aggregate([
-      {
-        $match: {
-          $or: [{ sender: userId }, { recipient: userId }],
-        },
-      },
-      {
-        $group: {
-          _id: {
-            $cond: {
-              if: { $eq: ["$sender", userId] },
-              then: "$recipient",
-              else: "$sender",
-            },
-          },
-          lastMessage: { $last: "$$ROOT" }, // Get last message in each chat
-        },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "_id",
-          foreignField: "_id",
-          as: "chatPartner",
-        },
-      },
-      {
-        $unwind: "$chatPartner",
-      },
-      {
-        $project: {
-          _id: 0,
-          chatPartner: { _id: 1, username: 1, avatar: 1 },
-          lastMessage: {
-            content: 1,
-            media: 1,
-            createdAt: 1,
-            isRead: 1,
-          },
-        },
-      },
-    ]);
-
-    res.json({ chats });
+    res.status(201).json({ message });
   } catch (error) {
     next(error);
   }
 };
 
-
-// Get chat history between two users
-exports.getChatHistory = async (req, res, next) => {
+// Get all messages of a chat
+exports.getChatMessages = async (req, res, next) => {
   try {
-    const { userId1, userId2 } = req.params;
+    const { chatId } = req.params;
 
-    const messages = await Message.find({
-      $or: [
-        { sender: userId1, recipient: userId2 },
-        { sender: userId2, recipient: userId1 },
-      ],
-    })
-      .sort({ createdAt: 1 }) // Sort by timestamp
-      .populate('sender', 'username avatar') // Populate sender details
-      .populate('recipient', 'username avatar'); // Populate recipient details
+    const messages = await Message.find({ chatId })
+      .sort({ createdAt: 1 })
+      .populate('sender', 'username avatar');
 
     res.json({ messages });
   } catch (error) {
-    next(error); // Pass error to middleware
+    next(error);
   }
 };
 
 // Mark messages as read
 exports.markAsRead = async (req, res, next) => {
   try {
-    const { userId, senderId } = req.body;
+    const { chatId, userId } = req.body;
 
-    // Mark all unread messages from a specific sender as read
-    await Message.updateMany({ recipient: userId, sender: senderId, isRead: false }, { isRead: true });
+    await Message.updateMany(
+      { chatId, recipient: userId, isRead: false },
+      { isRead: true }
+    );
 
     res.json({ message: 'Messages marked as read' });
   } catch (error) {
-    next(error); // Pass error to middleware
+    next(error);
+  }
+};
+
+// Delete a message
+exports.deleteMessage = async (req, res, next) => {
+  try {
+    const { messageId } = req.params;
+
+    await Message.findByIdAndDelete(messageId);
+
+    res.json({ message: 'Message deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Edit a message
+exports.updateMessage = async (req, res, next) => {
+  try {
+    const { messageId } = req.params;
+    const { content } = req.body;
+
+    const message = await Message.findByIdAndUpdate(
+      messageId,
+      { content },
+      { new: true }
+    );
+
+    res.json({ message });
+  } catch (error) {
+    next(error);
   }
 };

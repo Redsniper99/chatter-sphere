@@ -1,5 +1,6 @@
 const express = require('express');
 const {
+  getProfile,
   register,
   login,
   logout,
@@ -15,6 +16,7 @@ router.post('/register', register);
 router.post('/login', login);
 router.post('/logout', authenticateUser, logout);
 router.post('/google-login', googleLogin);
+router.get('/profile', authenticateUser, getProfile);
 
 // User Profile and Status Routes
 router.patch('/status', authenticateUser, updateStatus);
